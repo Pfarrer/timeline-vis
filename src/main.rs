@@ -1,7 +1,8 @@
 extern crate zip;
 
+mod json;
+
 use std::fs;
-use std::io;
 
 fn main() {
     std::process::exit(real_main());
@@ -17,5 +18,11 @@ fn real_main() -> i32 {
     let file = fs::File::open(&fname).unwrap();
 
     let mut archive = zip::ZipArchive::new(file).unwrap();
+    json::parse(
+        archive
+            .by_name("Takeout/Standortverlauf/Standortverlauf.json")
+            .unwrap(),
+    );
+
     return 0;
 }
