@@ -1,5 +1,7 @@
-extern crate zip;
+// extern crate chrono;
+// extern crate zip;
 
+mod gtimeline;
 mod json;
 
 use std::fs;
@@ -18,11 +20,16 @@ fn real_main() -> i32 {
     let file = fs::File::open(&fname).unwrap();
 
     let mut archive = zip::ZipArchive::new(file).unwrap();
-    json::parse(
+    let jsonTokenizer = json::JsonTokenizer::new(
         archive
             .by_name("Takeout/Standortverlauf/Standortverlauf.json")
             .unwrap(),
     );
+    let locationIterator = gtimeline::parse(jsonTokenizer);
+
+    locationIterator
+        .take(1000)
+        .for_each(|t| println!("{:?}", t));
 
     return 0;
 }

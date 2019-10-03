@@ -171,20 +171,6 @@ impl<T: Read> Iterator for JsonTokenizer<T> {
     }
 }
 
-pub struct Location {
-    // timestampMs: String,
-// latitudeE7: i32,
-// longitudeE7: i32,
-// accuracy: u32,
-}
-
-pub fn parse<T: Read>(source: T) -> Vec<Location> {
-    let tokenizer = JsonTokenizer::new(source);
-
-    tokenizer.take(100).for_each(|t| println!("{:?}", t));
-    vec![]
-}
-
 #[test]
 fn empty_array() {
     let source = "  \r\n [ ] \t   ".as_bytes();
