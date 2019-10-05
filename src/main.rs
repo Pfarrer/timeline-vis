@@ -1,5 +1,5 @@
-// extern crate chrono;
-// extern crate zip;
+#[macro_use]
+extern crate maplit;
 
 mod gtimeline;
 mod json;
@@ -20,14 +20,14 @@ fn real_main() -> i32 {
     let file = fs::File::open(&fname).unwrap();
 
     let mut archive = zip::ZipArchive::new(file).unwrap();
-    let jsonTokenizer = json::JsonTokenizer::new(
+    let json_tokenizer = json::JsonTokenizer::new(
         archive
             .by_name("Takeout/Standortverlauf/Standortverlauf.json")
             .unwrap(),
     );
-    let locationIterator = gtimeline::parse(jsonTokenizer);
+    let location_iterator = gtimeline::parse(json_tokenizer);
 
-    locationIterator
+    location_iterator
         .take(1000)
         .for_each(|t| println!("{:?}", t));
 
