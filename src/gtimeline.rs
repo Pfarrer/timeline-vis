@@ -1,9 +1,8 @@
 use crate::json::parser;
-use crate::json::JsonTokenizer;
+use crate::json::Token;
 use chrono::NaiveDateTime;
 use geo::Point;
 use std::collections::HashMap;
-use zip::read::ZipFile;
 
 #[derive(Debug)]
 pub struct Location {
@@ -120,12 +119,44 @@ impl Location {
 //     }
 //
 
-pub fn parse<'a>(
-    tokenizer: JsonTokenizer<ZipFile<'a>>,
-) -> impl Iterator<Item = Result<Location, ()>> + 'a {
-    let rules = parser::ExpectObject {
-        rules: HashMap::new(),
-    };
-    parser::LazyParser::new(Box::new(tokenizer), Box::new(rules))
+pub struct LocationIterator<It>
+where
+    It: Iterator<Item = Token>
+{
+    tokenizer: It
+}
+
+impl<'t, It> Iterator for LocationIterator<It>
+where
+    It: Iterator<Item = Token>
+{
+    type Item = Result<Location, ()>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        None
+    }
+}
+
+pub fn parse<'t, 'y, It>(tokenizer: It) -> LocationIterator<It>
+where
+    It: Iterator<Item = Token> + 't,
+    'y: 't,
+{
+    // let mut object_rules: HashMap<String, Box<dyn parser::ParseFn<'a, Location>+ 'a>> = HashMap::new();
+    // object_rules.insert("locations".into(), Box::new(parser::ExpectArray {
+    //             rule: Box::new(parser::ExpectObject {
+    //                 rules: std::collections::HashMap::new()
+    //             })
+    //         }));
+
+    // let expect_object = parser::ExpectObject {
+    //     // rules: object_rules
+    //     rules: HashMap::new(),
+    // };
+    // parser::LazyParser::new(Box::new(tokenizer), Box::new(expect_object))
+
+    LocationIterator {
+        tokenizer
+    }
 }
 // create: Box::new(|| Ok(Location::new_invalid()))

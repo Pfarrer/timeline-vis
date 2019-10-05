@@ -25,7 +25,7 @@ fn real_main() -> i32 {
             .by_name("Takeout/Standortverlauf/Standortverlauf.json")
             .unwrap(),
     );
-    let location_iterator = gtimeline::parse(json_tokenizer);
+    let location_iterator = gtimeline::parse(Box::new(json_tokenizer));
 
     location_iterator
         .take(1000)
