@@ -1,6 +1,7 @@
-#[macro_use]
-extern crate maplit;
+// #[macro_use]
+// extern crate maplit;
 
+mod location;
 mod gtimeline;
 mod json;
 
