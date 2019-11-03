@@ -33,6 +33,7 @@ impl<T: Read> JsonTokenizer<T> {
 
     pub fn next_token(&mut self) -> Option<Token> {
         self.consume_whitespaces();
+
         match self.get_char() {
             Some(t) => {
                 self.idx += 1;
@@ -48,7 +49,7 @@ impl<T: Read> JsonTokenizer<T> {
             '}' => Token::ObjectEnd,
             '[' => Token::ArrayStart,
             ']' => Token::ArrayEnd,
-            '0'..='9' => self.consume_number(t),
+            '0'..='9' | '-' => self.consume_number(t),
             't' | 'f' => self.consume_bool(t),
             'n' => self.consume_null(t),
             '"' => self.consume_string(t),
@@ -199,7 +200,7 @@ fn array_primitives() {
 
 #[test]
 fn numbers() {
-    let source = "[ 0,1.0 ,0.1\t,\n9.00003, 0123 ]".as_bytes();
+    let source = "[ 0,1.0 ,0.1\t,\n9.00003, 0123, -1,-0.01 ]".as_bytes();
     let mut tokenizer = JsonTokenizer::new(source);
 
     assert_eq!(tokenizer.next_token(), Some(Token::ArrayStart));
@@ -208,6 +209,8 @@ fn numbers() {
     assert_eq!(tokenizer.next_token(), Some(Token::Float(0.1)));
     assert_eq!(tokenizer.next_token(), Some(Token::Float(9.00003)));
     assert_eq!(tokenizer.next_token(), Some(Token::Integer(123)));
+    assert_eq!(tokenizer.next_token(), Some(Token::Integer(-1)));
+    assert_eq!(tokenizer.next_token(), Some(Token::Float(-0.01)));
     assert_eq!(tokenizer.next_token(), Some(Token::ArrayEnd));
     assert_eq!(tokenizer.next_token(), None);
 }

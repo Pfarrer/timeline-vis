@@ -1,9 +1,9 @@
 // #[macro_use]
 // extern crate maplit;
 
-mod location;
 mod gtimeline;
 mod json;
+mod model;
 
 use std::fs;
 
@@ -26,7 +26,7 @@ fn real_main() -> i32 {
             .by_name("Takeout/Standortverlauf/Standortverlauf.json")
             .unwrap(),
     );
-    let location_iterator = gtimeline::parse(Box::new(json_tokenizer));
+    let location_iterator = gtimeline::parse_google_timeline(Box::new(json_tokenizer));
 
     location_iterator
         .take(1000)

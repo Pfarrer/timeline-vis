@@ -1,16 +1,26 @@
+use crate::gtimeline::classification_iterator::ClassificationIterator;
 use crate::json::Token;
-use crate::location::{Location, LocationBuilder};
+use crate::model::{Location, LocationBuilder};
 
 pub struct LocationIterator<It>
-    where
-        It: Iterator<Item=Token>
+where
+    It: Iterator<Item = Token>,
 {
-    tokenizer: It
+    tokenizer: It,
+}
+
+impl<It> LocationIterator<It>
+where
+    It: Iterator<Item = Token>,
+{
+    pub fn new(tokenizer: It) -> LocationIterator<It> {
+        LocationIterator { tokenizer }
+    }
 }
 
 impl<It> Iterator for LocationIterator<It>
-    where
-        It: Iterator<Item=Token>
+where
+    It: Iterator<Item = Token>,
 {
     type Item = Result<Location, ()>;
 
@@ -62,23 +72,24 @@ impl<It> Iterator for LocationIterator<It>
                             _ => panic!("accuracy value not an integer"),
                         };
                     }
-                    _ => panic!("Unexpected field {}", identifier)
-                }
+                    "activity" => {
+                        assert_eq!(self.tokenizer.next(), Some(Token::ArrayStart));
+
+                        {
+                            let classifications = ClassificationIterator::new(&mut self.tokenizer)
+                                .filter_map(|it| it.ok())
+                                .collect();
+                            builder.classifications(classifications);
+                        }
+
+                        //                        assert_eq!(self.tokenizer.next(), Some(Token::ArrayEnd));
+                    }
+                    _ => panic!("Unexpected field {}", identifier),
+                },
                 Some(Token::ObjectEnd) => return Some(builder.build()),
 
-                a => panic!("Unexpected token {:?}", a)
+                a => panic!("Unexpected token {:?}", a),
             }
         }
     }
-}
-
-pub fn parse<It>(mut tokenizer: It) -> LocationIterator<It>
-    where
-        It: Iterator<Item=Token>
-{
-    assert_eq!(tokenizer.next(), Some(Token::ObjectStart));
-    assert_eq!(tokenizer.next(), Some(Token::Identifier("locations".into())));
-    assert_eq!(tokenizer.next(), Some(Token::ArrayStart));
-
-    LocationIterator { tokenizer }
 }
