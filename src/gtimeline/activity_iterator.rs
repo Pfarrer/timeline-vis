@@ -24,7 +24,7 @@ impl<'a, It> Iterator for ActivityIterator<'a, It>
 where
     It: Iterator<Item = Token>,
 {
-    type Item = Result<Activity, ()>;
+    type Item = Result<Activity, String>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.tokenizer.peek() == Some(&Token::ObjectStart) {

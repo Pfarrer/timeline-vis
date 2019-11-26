@@ -25,7 +25,7 @@ impl<'a, It> Iterator for ClassificationIterator<'a, It>
 where
     It: Iterator<Item = Token>,
 {
-    type Item = Result<Classification, ()>;
+    type Item = Result<Classification, String>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.tokenizer.peek() == Some(&Token::ObjectStart) {
@@ -56,8 +56,6 @@ where
                                 .collect();
                             builder.activities(activities);
                         }
-
-                        //                        assert_eq!(self.tokenizer.next(), Some(Token::ArrayEnd));
                     }
                     _ => panic!("Unexpected field {}", identifier),
                 },

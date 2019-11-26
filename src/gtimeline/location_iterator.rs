@@ -22,7 +22,7 @@ impl<It> Iterator for LocationIterator<It>
 where
     It: Iterator<Item = Token>,
 {
-    type Item = Result<Location, ()>;
+    type Item = Result<Location, String>;
 
     fn next(&mut self) -> Option<Self::Item> {
         assert_eq!(self.tokenizer.next(), Some(Token::ObjectStart));
@@ -81,8 +81,6 @@ where
                                 .collect();
                             builder.classifications(classifications);
                         }
-
-                        //                        assert_eq!(self.tokenizer.next(), Some(Token::ArrayEnd));
                     }
                     _ => panic!("Unexpected field {}", identifier),
                 },

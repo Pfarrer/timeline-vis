@@ -5,7 +5,7 @@ mod location_iterator;
 use crate::json::Token;
 use location_iterator::LocationIterator;
 
-pub fn parse_google_timeline<It>(mut tokenizer: It) -> LocationIterator<It>
+pub fn parse_locations<It>(mut tokenizer: It) -> LocationIterator<It>
 where
     It: Iterator<Item = Token>,
 {

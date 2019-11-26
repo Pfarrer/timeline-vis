@@ -1,18 +1,28 @@
-use chrono::NaiveDateTime;
-use geo::{Coordinate, Point};
+use chrono::{NaiveDateTime, Utc, DateTime, Datelike, Timelike};
+use serde::Serialize;
 
 use crate::model::Classification;
+use elastic::types::geo::point::GeoPoint;
+use elastic::types::geo::point::mapping::DefaultGeoPointMapping;
+use elastic::params::Index;
+use elastic::prelude::StaticIndex;
+use elastic::types::date::Date;
+use elastic::types::date::mapping::DefaultDateMapping;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, ElasticType)]
+#[elastic(crate_root = "elastic::types")]
+#[elastic(
+    index = "timeline"
+)]
 pub struct Location {
-    timestamp: NaiveDateTime,
-    point: Point<f32>,
-    accuracy: u8,
-    activity_classifications: Vec<Classification>,
+    pub timestamp: Date<DefaultDateMapping>,
+    pub coordinates: GeoPoint<DefaultGeoPointMapping>,
+    pub accuracy: i32,
+//    pub activity_classifications: Vec<Classification>,
 }
 
 pub struct LocationBuilder {
-    invalid: bool,
+    errors: Vec<String>,
     timestamp: Option<NaiveDateTime>,
     point_x: Option<f32>,
     point_y: Option<f32>,
@@ -23,7 +33,7 @@ pub struct LocationBuilder {
 impl LocationBuilder {
     pub fn new() -> LocationBuilder {
         LocationBuilder {
-            invalid: false,
+            errors: Vec::new(),
             timestamp: None,
             point_x: None,
             point_y: None,
@@ -47,7 +57,13 @@ impl LocationBuilder {
     }
 
     pub fn accuracy(&mut self, val: i64) -> &mut LocationBuilder {
-        self.accuracy = Some(val as u8);
+        if val < 0 || val > 10000 {
+            self.errors
+                .push(format!("location.accuracy out of range ({})", val));
+            self.accuracy = Some(0);
+        } else {
+            self.accuracy = Some(val as u8);
+        }
         self
     }
 
@@ -59,24 +75,41 @@ impl LocationBuilder {
         self
     }
 
-    pub fn build(self) -> Result<Location, ()> {
-        if !self.invalid
-            && self.timestamp.is_some()
-            && self.point_x.is_some()
-            && self.point_y.is_some()
-            && self.accuracy.is_some()
-        {
+    pub fn build(mut self) -> Result<Location, String> {
+        if self.timestamp.is_none() {
+            self.errors.push("location.timestamp missing".into());
+        }
+        if self.point_x.is_none() {
+            self.errors.push("location.point_x missing".into());
+        }
+        if self.point_y.is_none() {
+            self.errors.push("location.point_y missing".into());
+        }
+        if self.accuracy.is_none() {
+            self.errors.push("location.accuracy missing".into());
+        }
+
+        if self.errors.len() == 0 {
+            let date_time = self.timestamp.unwrap();
             Ok(Location {
-                timestamp: self.timestamp.unwrap(),
-                point: Point(Coordinate {
-                    x: self.point_x.unwrap(),
-                    y: self.point_y.unwrap(),
-                }),
-                accuracy: self.accuracy.unwrap(),
-                activity_classifications: self.classifications.unwrap_or(vec![]),
+                timestamp: Date::build(
+                    date_time.year(),
+                    date_time.month(),
+                    date_time.day(),
+                    date_time.hour(),
+                    date_time.minute(),
+                    date_time.second(),
+                    date_time.timestamp_subsec_millis()
+                ),
+                coordinates: GeoPoint::build(
+                    self.point_x.unwrap() as f64,
+                    self.point_y.unwrap() as f64
+                ),
+                accuracy: self.accuracy.unwrap() as i32,
+//                activity_classifications: self.classifications.unwrap_or(Vec::with_capacity(0)),
             })
         } else {
-            Err(())
+            Err(self.errors.join("; "))
         }
     }
 }

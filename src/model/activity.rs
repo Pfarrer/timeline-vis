@@ -1,4 +1,7 @@
-#[derive(Debug)]
+use std::borrow::Borrow;
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
 pub enum Activity {
     Unknown(u8),
     InVehicle(u8),
@@ -33,7 +36,7 @@ impl Activity {
 }
 
 pub struct ActivityBuilder {
-    invalid: bool,
+    errors: Vec<String>,
     r#type: Option<String>,
     confidence: Option<u8>,
 }
@@ -41,7 +44,7 @@ pub struct ActivityBuilder {
 impl ActivityBuilder {
     pub fn new() -> ActivityBuilder {
         ActivityBuilder {
-            invalid: false,
+            errors: Vec::new(),
             r#type: None,
             confidence: None,
         }
@@ -54,24 +57,38 @@ impl ActivityBuilder {
 
     pub fn confidence(&mut self, value: u8) -> &mut ActivityBuilder {
         if value > 100 {
-            self.invalid = true;
+            self.errors
+                .push(format!("activity.confidence out of range ({})", value));
+            self.confidence = Some(0);
         } else {
             self.confidence = Some(value);
         }
         self
     }
 
-    pub fn build(self) -> Result<Activity, ()> {
-        if !self.invalid && self.r#type.is_some() && self.confidence.is_some() {
-            let activity =
-                Activity::from_str(self.r#type.unwrap().as_str(), self.confidence.unwrap());
+    pub fn build(mut self) -> Result<Activity, String> {
+        if self.r#type.is_none() {
+            self.errors.push("activity.type missing".into());
+        }
+        if self.confidence.is_none() {
+            self.errors.push("activity.confidence missing".into());
+        }
+
+        if self.errors.len() == 0 {
+            let activity = Activity::from_str(
+                self.r#type.borrow().as_ref().unwrap().as_str(),
+                self.confidence.unwrap(),
+            );
             if activity.is_some() {
                 Ok(activity.unwrap())
             } else {
-                Err(())
+                Err(format!(
+                    "Unexpected activity type '{}'",
+                    self.r#type.unwrap()
+                ))
             }
         } else {
-            Err(())
+            Err(self.errors.join("; "))
         }
     }
 }

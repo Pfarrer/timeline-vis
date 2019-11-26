@@ -1,14 +1,14 @@
 use crate::model::Activity;
 use chrono::NaiveDateTime;
+use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Classification {
-    timestamp_ms: NaiveDateTime,
-    activities: Vec<Activity>,
+    pub timestamp: NaiveDateTime,
+    pub activities: Vec<Activity>,
 }
 
 pub struct ClassificationBuilder {
-    invalid: bool,
     timestamp_ms: Option<NaiveDateTime>,
     activities: Option<Vec<Activity>>,
 }
@@ -16,7 +16,6 @@ pub struct ClassificationBuilder {
 impl ClassificationBuilder {
     pub fn new() -> ClassificationBuilder {
         ClassificationBuilder {
-            invalid: false,
             timestamp_ms: None,
             activities: None,
         }
@@ -32,14 +31,22 @@ impl ClassificationBuilder {
         self
     }
 
-    pub fn build(self) -> Result<Classification, ()> {
-        if !self.invalid && self.timestamp_ms.is_some() && self.activities.is_some() {
+    pub fn build(self) -> Result<Classification, String> {
+        let mut errors: Vec<String> = Vec::new();
+        if self.timestamp_ms.is_none() {
+            errors.push("classification.timestamp_ms missing".into());
+        }
+        if self.activities.is_none() {
+            errors.push("classification.activities missing".into());
+        }
+
+        if errors.len() == 0 {
             Ok(Classification {
-                timestamp_ms: self.timestamp_ms.unwrap(),
+                timestamp: self.timestamp_ms.unwrap(),
                 activities: self.activities.unwrap(),
             })
         } else {
-            Err(())
+            Err(errors.join("; "))
         }
     }
 }
