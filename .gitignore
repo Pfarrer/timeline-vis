@@ -4,3 +4,5 @@
 .DS_Store
 Cargo.lock
 *.zip
+/run-cache/
+/tmp/
