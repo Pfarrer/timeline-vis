@@ -6,3 +6,10 @@ Cargo.lock
 *.zip
 /run-cache/
 /tmp/
+
+
+#Added by cargo
+#
+#already existing elements were commented out
+
+#/target
