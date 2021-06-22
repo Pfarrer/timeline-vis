@@ -1,46 +1,21 @@
 {
   "properties": {
-    "activities": {
-      "properties": {
-        "activityType": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "probability": {
-          "type": "float"
-        }
-      }
+    "start_timestamp": {
+      "type": "date"
     },
-    "duration": {
-      "properties": {
-        "endTimestampMs": {
-          "type": "date"
-        },
-        "startTimestampMs": {
-          "type": "date"
-        }
-      }
+    "end_timestamp": {
+      "type": "date"
     },
-    "endLocation": {
-      "properties": {
-        "geoLocation": {
-          "type": "geo_point"
-        }
-      }
+    "distance": {
+      "type": "integer"
     },
-    "startLocation": {
-      "properties": {
-        "geoLocation": {
-          "type": "geo_point"
-        }
-      }
+    "activity_type": {
+      "type": "keyword"
     },
-    "waypoints": {
+    "semantic_waypoints": {
+      "type": "geo_shape"
+    },
+    "raw_waypoints": {
       "type": "geo_shape"
     }
   }
